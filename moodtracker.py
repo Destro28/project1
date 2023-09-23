@@ -11,10 +11,9 @@ mood_data = {}
 days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 # Create a function to update mood data
-def update_mood():
-    mood = mood_var.get()
-    if mood:
-        mood_data[current_day] = mood
+def update_mood(selected_mood):
+    if selected_mood:
+        mood_data[current_day] = selected_mood
         update_most_prominent_mood()
         next_day()
 
@@ -32,7 +31,6 @@ def next_day():
             show_summary()
 
     day_label.config(text=f"Select Mood for {current_day}:")
-    mood_var.set("")
 
 # Create a function to display the mood summary in a separate window
 def show_summary():
@@ -93,8 +91,13 @@ current_day = days_of_week[0]
 
 day_label = Label(root, text=f"Select Mood for {current_day}:")
 mood_var = StringVar()
-mood_combobox = Combobox(root, textvariable=mood_var, values=["1 - Happy", "2 - Okay", "3 - Sad"])
-update_button = Button(root, text='Update Mood', command=update_mood)
+
+# Create buttons for mood options (1, 2, 3)
+button_mood_1 = Button(root, text="1", command=lambda: update_mood(1))
+button_mood_2 = Button(root, text="2", command=lambda: update_mood(2))
+button_mood_3 = Button(root, text="3", command=lambda: update_mood(3))
+
+update_button = Button(root, text='Next Day', command=next_day)
 
 # Load the default "unknown.png" image for mood selection
 default_mood_image = Image.open("unknown.png")
@@ -109,11 +112,13 @@ summary_button = Button(root, text="Show Summary", command=show_summary)
 line_graph_button = Button(root, text="Show Line Graph", command=show_line_graph)
 
 # Grid layout
-day_label.grid(row=0, column=0, padx=10, pady=10, columnspan=2)
-mood_combobox.grid(row=1, column=0, padx=10, pady=10, columnspan=2)
-update_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
-mood_image_label.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
-most_prominent_mood_label.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
+day_label.grid(row=0, column=0, padx=10, pady=10, columnspan=3)
+button_mood_1.grid(row=1, column=0, padx=10, pady=10)
+button_mood_2.grid(row=1, column=1, padx=10, pady=10)
+button_mood_3.grid(row=1, column=2, padx=10, pady=10)
+update_button.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
+mood_image_label.grid(row=3, column=0, columnspan=3, padx=10, pady=10)
+most_prominent_mood_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
 summary_button.grid(row=5, column=0, padx=10, pady=10)
 line_graph_button.grid(row=5, column=1, padx=10, pady=10)
 

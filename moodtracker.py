@@ -2,6 +2,7 @@ from tkinter import Tk, Label, Button, StringVar
 from tkinter.ttk import Combobox
 from PIL import Image, ImageTk
 from collections import Counter
+import matplotlib.pyplot as plt
 
 # Initialize a dictionary to store mood data
 mood_data = {}
@@ -48,10 +49,13 @@ def show_summary():
     max_mood_label = Label(summary_window, text=f"Max Mood of the Week: {max_mood}")
     max_mood_label.pack()
 
-    # Create a label for the most prominent mood message
+    # Plot the mood line graph
+    plot_mood_line_graph()
+
+    # Create a label for the most prominent mood
     most_prominent_mood_message = get_mood_message(max_mood)
-    most_prominent_mood_message_label = Label(summary_window, text=most_prominent_mood_message)
-    most_prominent_mood_message_label.pack()
+    most_prominent_mood_label = Label(summary_window, text=most_prominent_mood_message)
+    most_prominent_mood_label.pack()
 
     summary_window.mainloop()
 
@@ -65,11 +69,24 @@ def update_most_prominent_mood():
 # Create a function to get the mood message based on the most prominent mood
 def get_mood_message(mood):
     mood_messages = {
-        1: "You had a happy week!",
-        2: "You had an okay week.",
-        3: "It seems like you had a sad week."
+        1: "1=A great week!",
+        2: "2=Could have been better.",
+        3: "3=It will get better."
     }
     return mood_messages.get(int(mood), "N/A")
+
+# Create a function to plot the mood line graph
+def plot_mood_line_graph():
+    moods = list(mood_data.keys())
+    mood_values = [int(value) for value in mood_data.values()]
+
+    plt.plot(moods, mood_values, marker='o', linestyle='-')
+    plt.xlabel("Days of the Week")
+    plt.ylabel("Mood")
+    plt.title("Mood Progression for the Week")
+    plt.xticks(rotation=45)
+    plt.grid(True)
+    plt.show()
 
 # Create the main window
 root = Tk()

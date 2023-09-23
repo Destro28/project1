@@ -1,4 +1,4 @@
-from tkinter import Tk, Label, Button, StringVar
+from tkinter import Tk, Label, Button, StringVar, Toplevel
 from tkinter.ttk import Combobox
 from PIL import Image, ImageTk
 from collections import Counter
@@ -34,9 +34,9 @@ def next_day():
     day_label.config(text=f"Select Mood for {current_day}:")
     mood_var.set("")
 
-# Create a function to display the mood summary
+# Create a function to display the mood summary in a separate window
 def show_summary():
-    summary_window = Tk()
+    summary_window = Toplevel(root)
     summary_window.title("Mood Summary")
 
     # Create a Label for each day's mood
@@ -48,14 +48,6 @@ def show_summary():
     max_mood = max(mood_data.values(), key=lambda x: int(x))
     max_mood_label = Label(summary_window, text=f"Max Mood of the Week: {max_mood}")
     max_mood_label.pack()
-
-    # Plot the mood line graph
-    plot_mood_line_graph()
-
-    # Create a label for the most prominent mood
-    most_prominent_mood_message = get_mood_message(max_mood)
-    most_prominent_mood_label = Label(summary_window, text=most_prominent_mood_message)
-    most_prominent_mood_label.pack()
 
     summary_window.mainloop()
 
@@ -75,18 +67,22 @@ def get_mood_message(mood):
     }
     return mood_messages.get(int(mood), "N/A")
 
-# Create a function to plot the mood line graph
-def plot_mood_line_graph():
-    moods = list(mood_data.keys())
-    mood_values = [int(value) for value in mood_data.values()]
+# Create a function to plot the mood line graph in a separate window
+def show_line_graph():
+    if mood_data:
+        line_graph_window = Toplevel(root)
+        line_graph_window.title("Mood Line Graph")
 
-    plt.plot(moods, mood_values, marker='o', linestyle='-')
-    plt.xlabel("Days of the Week")
-    plt.ylabel("Mood")
-    plt.title("Mood Progression for the Week")
-    plt.xticks(rotation=45)
-    plt.grid(True)
-    plt.show()
+        moods = list(mood_data.keys())
+        mood_values = [int(value) for value in mood_data.values()]
+
+        plt.plot(moods, mood_values, marker='o', linestyle='-')
+        plt.xlabel("Days of the Week")
+        plt.ylabel("Mood")
+        plt.title("Mood Progression for the Week")
+        plt.xticks(rotation=45)
+        plt.grid(True)
+        plt.show()
 
 # Create the main window
 root = Tk()
@@ -108,11 +104,17 @@ mood_image_label = Label(root, image=default_mood_image)
 # Create a label for the most prominent mood
 most_prominent_mood_label = Label(root, text="Most Prominent Mood of the Week: N/A")
 
+# Create buttons to show summary and line graph
+summary_button = Button(root, text="Show Summary", command=show_summary)
+line_graph_button = Button(root, text="Show Line Graph", command=show_line_graph)
+
 # Grid layout
 day_label.grid(row=0, column=0, padx=10, pady=10, columnspan=2)
 mood_combobox.grid(row=1, column=0, padx=10, pady=10, columnspan=2)
 update_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
 mood_image_label.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
 most_prominent_mood_label.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
+summary_button.grid(row=5, column=0, padx=10, pady=10)
+line_graph_button.grid(row=5, column=1, padx=10, pady=10)
 
 root.mainloop()

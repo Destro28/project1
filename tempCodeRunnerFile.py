@@ -1,1 +1,1 @@
-most_prominent_mood_label
+selected_mood

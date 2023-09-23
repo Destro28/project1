@@ -1,119 +1,98 @@
-from tkinter import Tk, Label, Button, StringVar, font
-from PIL import Image, ImageTk
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.image import Image
+from kivy.uix.carousel import Carousel
+from kivy.properties import StringProperty
 from collections import Counter
 import matplotlib.pyplot as plt
 
-# Initialize a dictionary to store mood data
-mood_data = {}
+class MoodTrackerApp(App):
+    def build(self):
+        self.title = 'Mood Tracker'
+        self.current_day_index = 0
+        self.mood_data = {}
+        self.days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        self.selected_mood = None
 
-# Define a list of days of the week
-days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        self.layout = BoxLayout(orientation='vertical', spacing=10, padding=10)
 
-# Initialize selected_mood as a global variable
-selected_mood = None
+        self.day_label = Label(text=f"Select Mood for {self.days_of_week[self.current_day_index]}:", font_size=20)
+        self.layout.add_widget(self.day_label)
 
-# Create a function to update mood data and display mood messages
-def update_mood(mood):
-    global selected_mood
-    selected_mood = mood
-    if selected_mood:
-        mood_data[current_day] = selected_mood
-        update_most_prominent_mood()
-        update_mood_message()
-        next_day()
+        # Create a BoxLayout for mood buttons, centered horizontally
+        mood_buttons_layout = BoxLayout(orientation='horizontal', spacing=10, size_hint_y=None, height=100)
+        self.button_mood_1 = Button(text="1", on_press=lambda x: self.update_mood("1"), font_size=20)
+        self.button_mood_2 = Button(text="2", on_press=lambda x: self.update_mood("2"), font_size=20)
+        self.button_mood_3 = Button(text="3", on_press=lambda x: self.update_mood("3"), font_size=20)
+        mood_buttons_layout.add_widget(self.button_mood_1)
+        mood_buttons_layout.add_widget(self.button_mood_2)
+        mood_buttons_layout.add_widget(self.button_mood_3)
+        self.layout.add_widget(mood_buttons_layout)
 
-# Create a function to switch to the next day
-def next_day():
-    global current_day
-    if not current_day:
-        current_day = days_of_week[0]
-    else:
-        current_day_index = days_of_week.index(current_day)
-        if current_day_index < len(days_of_week) - 1:
-            current_day = days_of_week[current_day_index + 1]
-        else:
-            current_day = None
-            show_line_graph()
+        self.image_carousel = Carousel(direction='right', loop=True)
+        self.default_image = Image(source='unknown.png', allow_stretch=True)
+        self.image_carousel.add_widget(self.default_image)
+        self.layout.add_widget(self.image_carousel)
 
-    day_label.config(text=f"Select Mood for {current_day}:")
+        self.most_prominent_mood_label = Label(text="Most Prominent Mood of the Week: N/A", font_size=16)
+        self.layout.add_widget(self.most_prominent_mood_label)
 
-# Create a function to update the most prominent mood of the week
-def update_most_prominent_mood():
-    if mood_data:
-        mood_counter = Counter(mood_data.values())
-        most_common_mood = mood_counter.most_common(1)[0][0]
-        most_prominent_mood_label.config(text=f"Most Prominent Mood of the Week: {most_common_mood}", font=("Arial", 16))
+        self.line_graph_button = Button(text="Show Line Graph", on_press=self.show_line_graph, font_size=16)
+        self.layout.add_widget(self.line_graph_button)
 
-# Create a function to get the mood message based on the selected mood
-def get_mood_message(mood):
-    mood_messages = {
-        1: "1=A great week!",
-        2: "2=Could have been better.",
-        3: "3=It will get better."
-    }
-    return mood_messages.get(int(mood), "N/A")
+        self.mood_message_label = Label(text="", font_size=16)
+        self.layout.add_widget(self.mood_message_label)
 
-# Create a function to update the mood message label
-def update_mood_message():
-    if selected_mood:
-        mood_message = get_mood_message(selected_mood)
-        mood_message_label.config(text=mood_message, font=("Arial", 16))
+        self.popup = None
 
-# Create a function to plot the mood line graph
-def show_line_graph():
-    if mood_data:
-        moods = list(mood_data.keys())
-        mood_values = [int(value) for value in mood_data.values()]
+        return self.layout
 
-        plt.plot(moods, mood_values, marker='o', linestyle='-')
-        plt.xlabel("Days of the Week", fontsize=16)
-        plt.ylabel("Mood", fontsize=16)
-        plt.title("Mood Progression for the Week", fontsize=20)
-        plt.xticks(rotation=45)
-        plt.grid(True)
-        plt.show()
+    def update_mood(self, mood):
+        self.selected_mood = mood
+        if self.selected_mood:
+            self.mood_data[self.days_of_week[self.current_day_index]] = self.selected_mood
+            self.update_most_prominent_mood()
+            self.update_mood_message()
+            self.next_day()
 
-# Create the main window
-root = Tk()
-root.title('Mood Tracker')
+    def next_day(self):
+        self.current_day_index = (self.current_day_index + 1) % len(self.days_of_week)
+        self.day_label.text = f"Select Mood for {self.days_of_week[self.current_day_index]}:"
 
-# Create GUI elements
-current_day = days_of_week[0]
+    def update_most_prominent_mood(self):
+        if self.mood_data:
+            mood_counter = Counter(self.mood_data.values())
+            most_common_mood = mood_counter.most_common(1)[0][0]
+            self.most_prominent_mood_label.text = f"Most Prominent Mood of the Week: {most_common_mood}"
 
-day_label = Label(root, text=f"Select Mood for {current_day}:", font=("Arial", 20))
-mood_var = StringVar()
+    def update_mood_message(self):
+        if self.selected_mood:
+            mood_message = self.get_mood_message(self.selected_mood)
+            self.mood_message_label.text = mood_message
 
-# Create larger buttons for mood options (1, 2, 3) with increased font size
-button_font = font.Font(size=20)
-button_mood_1 = Button(root, text="1", command=lambda: update_mood(1), width=5, font=button_font)
-button_mood_2 = Button(root, text="2", command=lambda: update_mood(2), width=5, font=button_font)
-button_mood_3 = Button(root, text="3", command=lambda: update_mood(3), width=5, font=button_font)
+    @staticmethod
+    def get_mood_message(mood):
+        mood_messages = {
+            '1': "1=A great week!",
+            '2': "2=Could have been better.",
+            '3': "3=It will get better."
+        }
+        return mood_messages.get(mood, "N/A")
 
-update_button = Button(root, text='Next Day', command=next_day, font=("Arial", 20))
+    def show_line_graph(self, instance):
+        if self.mood_data:
+            moods = list(self.mood_data.keys())
+            mood_values = [int(value) for value in self.mood_data.values()]
 
-# Load the default "unknown.png" image for mood selection
-default_mood_image = Image.open("unknown.png")
-default_mood_image = ImageTk.PhotoImage(default_mood_image)
-mood_image_label = Label(root, image=default_mood_image)
+            plt.plot(moods, mood_values, marker='o', linestyle='-')
+            plt.xlabel("Days of the Week", fontsize=16)
+            plt.ylabel("Mood", fontsize=16)
+            plt.title("Mood Progression for the Week", fontsize=20)
+            plt.xticks(rotation=45)
+            plt.grid(True)
+            plt.show()
 
-# Create a label for the most prominent mood
-most_prominent_mood_label = Label(root, text="Most Prominent Mood of the Week: N/A", font=("Arial", 16))
-
-# Create a button to show the line graph
-line_graph_button = Button(root, text="Show Line Graph", command=show_line_graph, font=("Arial", 16))
-
-# Create a Label for mood messages
-mood_message_label = Label(root, text="", font=("Arial", 16))
-
-# Grid layout
-day_label.grid(row=0, column=0, padx=10, pady=10, columnspan=3)
-button_mood_1.grid(row=1, column=0, padx=10, pady=10)
-button_mood_2.grid(row=1, column=1, padx=10, pady=10)
-button_mood_3.grid(row=1, column=2, padx=10, pady=10)
-update_button.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
-mood_image_label.grid(row=3, column=0, columnspan=3, padx=10, pady=10)
-most_prominent_mood_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
-line_graph_button.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
-mood_message_label.grid(row=6, column=0, columnspan=3, padx=10, pady=10)
-
-root.mainloop()
+if __name__ == '__main__':
+    MoodTrackerApp().run()

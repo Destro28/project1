@@ -1,6 +1,7 @@
 from tkinter import Tk, Label, Button, StringVar
 from tkinter.ttk import Combobox
 from PIL import Image, ImageTk
+from collections import Counter
 
 # Initialize a dictionary to store mood data
 mood_data = {}
@@ -13,6 +14,7 @@ def update_mood():
     mood = mood_var.get()
     if mood:
         mood_data[current_day] = mood
+        update_most_prominent_mood()
         next_day()
 
 # Create a function to switch to the next day
@@ -46,7 +48,28 @@ def show_summary():
     max_mood_label = Label(summary_window, text=f"Max Mood of the Week: {max_mood}")
     max_mood_label.pack()
 
+    # Create a label for the most prominent mood message
+    most_prominent_mood_message = get_mood_message(max_mood)
+    most_prominent_mood_message_label = Label(summary_window, text=most_prominent_mood_message)
+    most_prominent_mood_message_label.pack()
+
     summary_window.mainloop()
+
+# Create a function to update the most prominent mood of the week
+def update_most_prominent_mood():
+    if mood_data:
+        mood_counter = Counter(mood_data.values())
+        most_common_mood = mood_counter.most_common(1)[0][0]
+        most_prominent_mood_label.config(text=f"Most Prominent Mood of the Week: {most_common_mood}")
+
+# Create a function to get the mood message based on the most prominent mood
+def get_mood_message(mood):
+    mood_messages = {
+        1: "You had a happy week!",
+        2: "You had an okay week.",
+        3: "It seems like you had a sad week."
+    }
+    return mood_messages.get(int(mood), "N/A")
 
 # Create the main window
 root = Tk()
@@ -62,14 +85,17 @@ update_button = Button(root, text='Update Mood', command=update_mood)
 
 # Load the default "unknown.png" image for mood selection
 default_mood_image = Image.open("unknown.png")
-default_mood_image = default_mood_image.resize((200, 200), Image.ANTIALIAS)
 default_mood_image = ImageTk.PhotoImage(default_mood_image)
 mood_image_label = Label(root, image=default_mood_image)
+
+# Create a label for the most prominent mood
+most_prominent_mood_label = Label(root, text="Most Prominent Mood of the Week: N/A")
 
 # Grid layout
 day_label.grid(row=0, column=0, padx=10, pady=10, columnspan=2)
 mood_combobox.grid(row=1, column=0, padx=10, pady=10, columnspan=2)
 update_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
 mood_image_label.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+most_prominent_mood_label.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
 
 root.mainloop()
